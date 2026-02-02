@@ -9,12 +9,12 @@ export const transformImage = async (
   mimeType: string,
   prompt: string
 ): Promise<string> => {
-  // Safe access to API Key without throwing explicit errors to the UI
-  // This prevents "process is not defined" crashes in some browser environments
+  // Access API Key from environment variables safely
+  // Note: For Vercel/Production, this variable must be set in the project settings
   const apiKey = (typeof process !== 'undefined' && process.env && process.env.API_KEY) || '';
 
-  // Initialize the SDK. If the key is missing, the API call itself will fail 
-  // with a standard error, but we won't block the application flow proactively.
+  // Initialize the SDK. 
+  // We initialize it here to ensure we always try to use the latest env var state.
   const ai = new GoogleGenAI({ apiKey: apiKey });
 
   try {
@@ -29,7 +29,6 @@ export const transformImage = async (
             },
           },
           {
-            // Using English instruction 'Edit this image' improves model adherence to the editing task
             text: `Edit this image. ${prompt}`,
           },
         ],
@@ -40,7 +39,7 @@ export const transformImage = async (
     const parts = response.candidates?.[0]?.content?.parts;
     
     if (!parts || parts.length === 0) {
-      throw new Error("لم يتم استلام أي محتوى من الخادم.");
+      throw new Error("No content received from model.");
     }
 
     let generatedImageUrl = "";
@@ -50,28 +49,35 @@ export const transformImage = async (
         const base64Data = part.inlineData.data;
         const mime = part.inlineData.mimeType || 'image/png';
         generatedImageUrl = `data:${mime};base64,${base64Data}`;
-        break; // Found the image, exit loop
+        break; // Found the image
       }
     }
 
     if (!generatedImageUrl) {
-        // If no image found, check if there is text error message returned by model
+        // Check for text refusal/error from model
         const textPart = parts.find(p => p.text);
         if (textPart) {
              const msg = textPart.text.length > 200 ? textPart.text.substring(0, 200) + '...' : textPart.text;
-             throw new Error(`تعذر إنشاء الصورة: ${msg}`);
+             // Return model feedback as a polite error
+             throw new Error(`تعذر تنفيذ الطلب: ${msg}`);
         }
-        throw new Error("لم يقم النموذج بإرجاع صورة صالحة.");
+        throw new Error("لم يتم إنشاء الصورة بنجاح.");
     }
 
     return generatedImageUrl;
 
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
-    // Generic error handling that doesn't explicitly blame the user/key unless clear
-    let msg = error.message || "فشل تحويل الصورة";
-    if (msg.includes("403") || msg.includes("API key")) msg = "حدث خطأ في الاتصال بالخدمة (403).";
-    if (msg.includes("429")) msg = "الخدمة مشغولة حالياً، يرجى المحاولة لاحقاً.";
+    console.error("Gemini Processing Error:", error);
+    
+    // Mask API Key errors to avoid confusing the user
+    let msg = error.message || "حدث خطأ غير متوقع.";
+    
+    if (msg.includes("403") || msg.includes("API key") || msg.includes("key")) {
+        msg = "الخدمة غير متاحة حالياً. يرجى المحاولة لاحقاً.";
+    } else if (msg.includes("429")) {
+        msg = "الخادم مشغول جداً، يرجى الانتظار قليلاً والماولة مجدداً.";
+    }
+
     throw new Error(msg);
   }
 };

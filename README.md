@@ -1,20 +1,44 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# محرر الصور الذكي (Smart Image Editor)
 
-# Run and deploy your AI Studio app
+تطبيق ويب حديث لتحويل وتعديل الصور باستخدام الذكاء الاصطناعي (Google Gemini)، مبني باستخدام React و TypeScript.
 
-This contains everything you need to run your app locally.
+## المميزات
 
-View your app in AI Studio: https://ai.studio/apps/drive/12UeHIRKLY8EfKHCOL1X21s7MpeIvc1f_
+- 🎨 تعديل الصور بناءً على الأوامر النصية.
+- ⚡ واجهة سريعة وسهلة الاستخدام.
+- 📱 تصميم متجاوب يعمل على جميع الأجهزة.
+- 🔒 لا يتطلب من المستخدم إدخال مفاتيح API (يتم إعدادها في الخلفية).
 
-## Run Locally
+## طريقة التشغيل محلياً (Local Development)
 
-**Prerequisites:**  Node.js
+1. **تثبيت الاعتماديات:**
+   ```bash
+   npm install
+   ```
 
+2. **إعداد مفتاح API:**
+   - قم بإنشاء ملف `.env` في المجلد الرئيسي.
+   - أضف مفتاح Gemini API الخاص بك:
+     ```env
+     API_KEY=your_google_ai_studio_key_here
+     ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+3. **تشغيل التطبيق:**
+   ```bash
+   npm run dev
+   ```
+
+## طريقة النشر على Vercel (Deploy)
+
+لجعل التطبيق يعمل أونلاين دون أن يطلب من المستخدم أي مفتاح:
+
+1. ارفع المشروع على حسابك في **GitHub**.
+2. اذهب إلى [Vercel](https://vercel.com) وأضف "New Project".
+3. اختر المستودع (Repository) الخاص بالمشروع.
+4. في صفحة الإعدادات قبل الضغط على Deploy، اذهب إلى قسم **Environment Variables**.
+5. أضف متغير جديد:
+   - **Name**: `API_KEY`
+   - **Value**: (ضع مفتاح Gemini API الخاص بك هنا)
+6. اضغط **Deploy**.
+
+الآن سيعمل الموقع للجميع باستخدام المفتاح المحفوظ في إعدادات السيرفر بشكل آمن.
