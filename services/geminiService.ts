@@ -18,25 +18,27 @@ export const transformImage = async (
   mimeType: string,
   prompt: string
 ): Promise<string> => {
-  if (!apiKey) throw new Error("مفتاح API غير موجود");
+  if (!apiKey) throw new Error("مفتاح API غير موجود (API Key missing)");
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              data: base64Image,
-              mimeType: mimeType,
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                data: base64Image,
+                mimeType: mimeType,
+              },
             },
-          },
-          {
-            // Providing instruction in Arabic ensures better context understanding for Arabic prompts
-            text: `قم بتعديل هذه الصورة بناءً على التعليمات التالية: ${prompt}`,
-          },
-        ],
-      },
+            {
+              // Using English instruction 'Edit this image' improves model adherence to the editing task
+              text: `Edit this image. ${prompt}`,
+            },
+          ],
+        }
+      ],
     });
 
     // Iterate through parts to find the image
@@ -61,7 +63,9 @@ export const transformImage = async (
         // If no image found, check if there is text error message returned by model
         const textPart = parts.find(p => p.text);
         if (textPart) {
-             throw new Error(`أعاد النموذج نصاً بدلاً من صورة: ${textPart.text}`);
+             // Clean up the error message if it's too long
+             const msg = textPart.text.length > 200 ? textPart.text.substring(0, 200) + '...' : textPart.text;
+             throw new Error(`لم يتمكن النموذج من إنشاء صورة: ${msg}`);
         }
         throw new Error("لم يعد النموذج صورة صالحة.");
     }
@@ -70,6 +74,10 @@ export const transformImage = async (
 
   } catch (error: any) {
     console.error("Gemini API Error:", error);
-    throw new Error(error.message || "فشل تحويل الصورة");
+    // Provide a more user-friendly error message if possible
+    let msg = error.message || "فشل تحويل الصورة";
+    if (msg.includes("403") || msg.includes("API key")) msg = "خطأ في مفتاح API أو الصلاحيات.";
+    if (msg.includes("429")) msg = "تم تجاوز حد الطلبات (Quota Exceeded).";
+    throw new Error(msg);
   }
 };
