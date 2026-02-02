@@ -1,14 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Ensure API Key is available
-const apiKey = process.env.API_KEY;
-
-if (!apiKey) {
-  console.error("API_KEY is not defined in the environment variables.");
-}
-
-const ai = new GoogleGenAI({ apiKey: apiKey || 'dummy-key-for-build' });
-
 /**
  * Transforms an image based on a text prompt using Gemini.
  * Uses 'gemini-2.5-flash-image' for general editing tasks.
@@ -18,7 +9,15 @@ export const transformImage = async (
   mimeType: string,
   prompt: string
 ): Promise<string> => {
-  if (!apiKey) throw new Error("مفتاح API غير موجود (API Key missing)");
+  // Always retrieve the key at the moment of execution
+  const apiKey = process.env.API_KEY;
+
+  if (!apiKey) {
+    throw new Error("مفتاح API غير موجود (Missing API Key).");
+  }
+
+  // Initialize a new instance for every request to ensure the latest API key is used
+  const ai = new GoogleGenAI({ apiKey: apiKey });
 
   try {
     const response = await ai.models.generateContent({
@@ -76,7 +75,7 @@ export const transformImage = async (
     console.error("Gemini API Error:", error);
     // Provide a more user-friendly error message if possible
     let msg = error.message || "فشل تحويل الصورة";
-    if (msg.includes("403") || msg.includes("API key")) msg = "خطأ في مفتاح API أو الصلاحيات.";
+    if (msg.includes("403") || msg.includes("API key") || msg.includes("Valid key")) msg = "خطأ في الصلاحيات أو مفتاح API (403).";
     if (msg.includes("429")) msg = "تم تجاوز حد الطلبات (Quota Exceeded).";
     throw new Error(msg);
   }

@@ -105,14 +105,16 @@ const App: React.FC = () => {
               محرر الصور الذكي
             </h1>
           </div>
-          <a 
-            href="https://github.com" 
-            target="_blank" 
-            rel="noreferrer"
-            className="text-slate-400 hover:text-white transition-colors text-sm font-medium hidden sm:block"
-          >
-            بدعم من Gemini
-          </a>
+          <div className="flex items-center gap-4">
+            <a 
+                href="https://github.com" 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-slate-400 hover:text-white transition-colors text-sm font-medium hidden sm:block"
+            >
+                بدعم من Gemini
+            </a>
+          </div>
         </div>
       </header>
 
