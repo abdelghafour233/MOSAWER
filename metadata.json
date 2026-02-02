@@ -1,0 +1,5 @@
+{
+  "name": "محرر الصور الذكي",
+  "description": "تطبيق ويب حديث يستخدم Google Gemini AI لتحويل وتعديل الصور بناءً على الأوامر النصية.",
+  "requestFramePermissions": []
+}
